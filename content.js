@@ -274,6 +274,7 @@
   document.addEventListener("mousedown", (e) => {
     if (popup && !popup.contains(e.target)) {
       removePopup();
+      window.getSelection().removeAllRanges();
     }
   });
 
