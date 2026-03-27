@@ -1,0 +1,146 @@
+/* Quick Search Popup - Content Script Styles */
+
+#qsp-popup {
+  position: absolute;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  animation: qsp-fade-in 0.12s ease-out;
+}
+
+@keyframes qsp-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Light theme */
+#qsp-popup.qsp-light {
+  background: #f9f9fb;
+  border: 1px solid #cfcfd8;
+  color: #15141a;
+}
+
+/* Dark theme (not 100% black) */
+#qsp-popup.qsp-dark {
+  background: #2b2a33;
+  border: 1px solid #52525e;
+  color: #fbfbfe;
+}
+
+/* Buttons */
+.qsp-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: var(--qsp-icon-size, 16px);
+  min-height: var(--qsp-icon-size, 16px);
+  box-sizing: border-box;
+  transition: background-color 0.1s;
+}
+
+.qsp-light .qsp-btn:hover {
+  background: #e0e0e6;
+}
+
+.qsp-dark .qsp-btn:hover {
+  background: #3f3f48;
+}
+
+.qsp-btn:active {
+  opacity: 0.8;
+}
+
+/* Favicon image */
+.qsp-favicon-holder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--qsp-icon-size, 16px);
+  height: var(--qsp-icon-size, 16px);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.qsp-favicon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Text placeholder (first letter) */
+.qsp-btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--qsp-icon-size, 16px);
+  height: var(--qsp-icon-size, 16px);
+  font-size: calc(var(--qsp-icon-size, 16px) * 0.7);
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+.qsp-light .qsp-btn-text {
+  background: #e0e0e6;
+  color: #15141a;
+}
+
+.qsp-dark .qsp-btn-text {
+  background: #52525e;
+  color: #fbfbfe;
+}
+
+/* Label mode */
+.qsp-btn-label {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Name label next to favicon (both mode) */
+.qsp-btn-name {
+  font-size: 11px;
+  padding-right: 2px;
+}
+
+/* Builtin unicode icon (no background) */
+.qsp-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--qsp-icon-size, 16px);
+  height: var(--qsp-icon-size, 16px);
+  font-size: var(--qsp-icon-size, 16px);
+  line-height: 1;
+  vertical-align: middle;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Divider */
+.qsp-divider {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+}
+
+.qsp-light .qsp-divider {
+  background: #cfcfd8;
+}
+
+.qsp-dark .qsp-divider {
+  background: #52525e;
+}
