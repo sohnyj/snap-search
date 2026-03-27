@@ -11,12 +11,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
 
     case "fetch-favicon":
-      return getCachedFavicon(message.domain).then((dataUrl) => ({ dataUrl }));
+      return getCachedFavicon(message.domain).then((dataUrl) => ({ dataUrl })).catch(() => ({ dataUrl: null }));
 
     case "get-settings":
       return getSettings().then((settings) => ({ settings }));
   }
 });
+
+const FAVICON_MAX_BYTES = 200 * 1024; // 200KB per favicon
+const FAVICON_CACHE_LIMIT = 50;       // max cached favicons
 
 // Get favicon from persistent cache or fetch and cache it
 async function getCachedFavicon(domain) {
@@ -26,9 +29,18 @@ async function getCachedFavicon(domain) {
 
   const dataUrl = await fetchFavicon(domain);
   if (dataUrl) {
+    await evictFaviconCacheIfNeeded();
     await browser.storage.local.set({ [cacheKey]: dataUrl });
   }
   return dataUrl;
+}
+
+async function evictFaviconCacheIfNeeded() {
+  const all = await browser.storage.local.get(null);
+  const keys = Object.keys(all).filter((k) => k.startsWith("favicon_"));
+  if (keys.length >= FAVICON_CACHE_LIMIT) {
+    await browser.storage.local.remove(keys[0]);
+  }
 }
 
 // Fetch favicon with high resolution, respects Firefox proxy settings
@@ -43,7 +55,7 @@ async function fetchFavicon(domain) {
       const response = await fetch(pwaUrl, { redirect: "follow" });
       if (response.ok) {
         const blob = await response.blob();
-        if (blob.size >= 100) return await blobToDataUrl(blob);
+        if (blob.size >= 100 && blob.size <= FAVICON_MAX_BYTES) return await blobToDataUrl(blob);
       }
     }
 
@@ -53,7 +65,7 @@ async function fetchFavicon(domain) {
       const response = await fetch(iconUrl, { redirect: "follow" });
       if (response.ok) {
         const blob = await response.blob();
-        if (blob.size >= 100) return await blobToDataUrl(blob);
+        if (blob.size >= 100 && blob.size <= FAVICON_MAX_BYTES) return await blobToDataUrl(blob);
       }
     }
   } catch {
@@ -67,7 +79,7 @@ async function fetchFavicon(domain) {
       const contentType = response.headers.get("content-type") || "";
       if (contentType.startsWith("image/") || contentType.includes("icon")) {
         const blob = await response.blob();
-        if (blob.size >= 100) return await blobToDataUrl(blob);
+        if (blob.size >= 100 && blob.size <= FAVICON_MAX_BYTES) return await blobToDataUrl(blob);
       }
     }
   } catch {

@@ -14,7 +14,7 @@
 
   function isDomainExcluded() {
     if (!settings || !settings.excludedDomains) return false;
-    const host = location.hostname;
+    const host = location.hostname.toLowerCase();
     return settings.excludedDomains.some(
       (d) => host === d || host.endsWith(`.${d}`)
     );
@@ -217,12 +217,13 @@
     }
 
     // Divider between builtins and search engines
-    const currentHost = location.hostname;
+    const currentHost = location.hostname.toLowerCase();
     function isDomainIncluded(item) {
       const included = item.includedDomains;
       if (!included || included.length === 0) return true;
       return included.some((d) => currentHost === d || currentHost.endsWith(`.${d}`));
     }
+
     const visibleEngines = settings.searchEngines.filter((e) => {
       if (e.type === "divider") return e.enabled !== false && isDomainIncluded(e);
       return e.enabled && isDomainIncluded(e);

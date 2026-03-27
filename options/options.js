@@ -277,7 +277,7 @@ addEngineBtn.addEventListener("click", () => {
   }
 
   settings.searchEngines.push({
-    id: `custom-${Date.now()}`,
+    id: `${name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
     name,
     url,
     type: "custom",
@@ -295,6 +295,7 @@ addDividerBtn.addEventListener("click", () => {
   settings.searchEngines.push({
     id: `divider-${Date.now()}`,
     type: "divider",
+    enabled: true,
     includedDomains: []
   });
   saveSettings();
@@ -384,6 +385,10 @@ importFile.addEventListener("change", (e) => {
         showStatus("Invalid settings file");
         return;
       }
+      imported.searchEngines = imported.searchEngines.map((e) => {
+        if (e.url && /^javascript:/i.test(e.url.trim())) e.url = "";
+        return e;
+      });
       settings = imported;
       await saveSettings();
       render();
