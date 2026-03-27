@@ -85,8 +85,26 @@ function renderEngines() {
       label.className = "divider-label";
       label.textContent = "── Divider ──";
 
+      const domains = document.createElement("span");
+      domains.className = "engine-domains";
+      const included = item.includedDomains || [];
+      domains.textContent = included.length > 0 ? included.join(", ") : "";
+
       const actions = document.createElement("span");
       actions.className = "engine-actions";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "btn btn-small";
+      editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => {
+        const currentDomains = (item.includedDomains || []).join(", ");
+        const newDomains = prompt("Included Domains (comma-separated, empty = all sites):", currentDomains);
+        if (newDomains === null) return;
+        item.includedDomains = newDomains.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+        saveSettings();
+        renderEngines();
+      });
+
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "btn btn-small btn-danger";
       deleteBtn.textContent = "Delete";
@@ -95,11 +113,13 @@ function renderEngines() {
         saveSettings();
         renderEngines();
       });
+      actions.appendChild(editBtn);
       actions.appendChild(deleteBtn);
 
       row.appendChild(dragHandle);
       row.appendChild(toggle);
       row.appendChild(label);
+      row.appendChild(domains);
       row.appendChild(actions);
       engineList.appendChild(row);
       return;
@@ -122,6 +142,11 @@ function renderEngines() {
     const url = document.createElement("span");
     url.className = "engine-url";
     url.textContent = item.url;
+
+    const domains = document.createElement("span");
+    domains.className = "engine-domains";
+    const included = item.includedDomains || [];
+    domains.textContent = included.length > 0 ? included.join(", ") : "";
 
     const actions = document.createElement("span");
     actions.className = "engine-actions";
@@ -151,6 +176,7 @@ function renderEngines() {
     row.appendChild(toggle);
     row.appendChild(name);
     row.appendChild(url);
+    row.appendChild(domains);
     row.appendChild(actions);
     engineList.appendChild(row);
   });
@@ -162,9 +188,13 @@ function editEngine(index) {
   if (newName === null) return;
   const newUrl = prompt("URL (use %s for query):", engine.url);
   if (newUrl === null) return;
+  const currentDomains = (engine.includedDomains || []).join(", ");
+  const newDomains = prompt("Included Domains (comma-separated, empty = all sites):", currentDomains);
+  if (newDomains === null) return;
 
   engine.name = newName.trim() || engine.name;
   engine.url = newUrl.trim() || engine.url;
+  engine.includedDomains = newDomains.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
   saveSettings();
   renderEngines();
 }
@@ -251,7 +281,8 @@ addEngineBtn.addEventListener("click", () => {
     name,
     url,
     type: "custom",
-    enabled: true
+    enabled: true,
+    includedDomains: []
   });
 
   newEngineName.value = "";
@@ -263,7 +294,8 @@ addEngineBtn.addEventListener("click", () => {
 addDividerBtn.addEventListener("click", () => {
   settings.searchEngines.push({
     id: `divider-${Date.now()}`,
-    type: "divider"
+    type: "divider",
+    includedDomains: []
   });
   saveSettings();
   renderEngines();
@@ -331,7 +363,7 @@ exportBtn.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "quick-search-popup-settings.json";
+  a.download = "snap-search-settings.json";
   a.click();
   URL.revokeObjectURL(url);
 });

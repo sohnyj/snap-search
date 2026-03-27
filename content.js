@@ -157,16 +157,23 @@
       }
 
       faviconReady = getFavicon(engine.url).then((dataUrl) => {
-        if (dataUrl && btn.isConnected) {
-          const holder = document.createElement("span");
-          holder.className = "snaps-favicon-holder";
+        if (!dataUrl || !btn.isConnected) return;
+        return new Promise((resolve) => {
           const img = document.createElement("img");
-          img.src = dataUrl;
           img.className = "snaps-favicon";
           img.alt = engine.name;
-          holder.appendChild(img);
-          placeholder.replaceWith(holder);
-        }
+          img.onload = () => {
+            if (btn.isConnected) {
+              const holder = document.createElement("span");
+              holder.className = "snaps-favicon-holder";
+              holder.appendChild(img);
+              placeholder.replaceWith(holder);
+            }
+            resolve();
+          };
+          img.onerror = resolve;
+          img.src = dataUrl;
+        });
       });
     }
 
@@ -210,7 +217,16 @@
     }
 
     // Divider between builtins and search engines
-    const visibleEngines = settings.searchEngines.filter((e) => (e.type === "divider" && e.enabled !== false) || e.enabled);
+    const currentHost = location.hostname;
+    function isDomainIncluded(item) {
+      const included = item.includedDomains;
+      if (!included || included.length === 0) return true;
+      return included.some((d) => currentHost === d || currentHost.endsWith(`.${d}`));
+    }
+    const visibleEngines = settings.searchEngines.filter((e) => {
+      if (e.type === "divider") return e.enabled !== false && isDomainIncluded(e);
+      return e.enabled && isDomainIncluded(e);
+    });
     const hasBuiltin = (actions.copy && actions.copy.enabled) ||
       (actions.openLink && actions.openLink.enabled && isUrl(selectedText));
     if (hasBuiltin && visibleEngines.length > 0) {
