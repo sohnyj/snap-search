@@ -126,7 +126,7 @@
   font-size: var(--qsp-icon-size, 16px);
   line-height: 1;
   vertical-align: middle;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-family: "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 
 /* Divider */
