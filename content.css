@@ -7,19 +7,18 @@
   align-items: center;
   gap: 2px;
   padding: 4px 6px;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", "Segoe UI", sans-serif;
   font-size: 12px;
   line-height: 1;
   white-space: nowrap;
   user-select: none;
-  animation: qsp-fade-in 0.12s ease-out;
 }
 
 @keyframes qsp-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Light theme */
@@ -71,7 +70,7 @@
   justify-content: center;
   width: var(--qsp-icon-size, 16px);
   height: var(--qsp-icon-size, 16px);
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -91,7 +90,7 @@
   height: var(--qsp-icon-size, 16px);
   font-size: calc(var(--qsp-icon-size, 16px) * 0.7);
   font-weight: 600;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .qsp-light .qsp-btn-text {
@@ -112,7 +111,7 @@
 
 /* Name label next to favicon (both mode) */
 .qsp-btn-name {
-  font-size: 11px;
+  font-size: 12px;
   padding-right: 2px;
 }
 

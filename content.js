@@ -138,6 +138,7 @@
 
     const iconSize = settings.appearance.iconSize || 16;
     const displayMode = settings.appearance.displayMode || "favicon";
+    let faviconReady = Promise.resolve();
 
     if (displayMode === "label") {
       btn.textContent = engine.name;
@@ -155,7 +156,7 @@
         btn.appendChild(label);
       }
 
-      getFavicon(engine.url).then((dataUrl) => {
+      faviconReady = getFavicon(engine.url).then((dataUrl) => {
         if (dataUrl && btn.isConnected) {
           const holder = document.createElement("span");
           holder.className = "qsp-favicon-holder";
@@ -168,6 +169,8 @@
         }
       });
     }
+
+    btn.faviconReady = faviconReady;
 
     btn.style.setProperty("--qsp-icon-size", `${iconSize}px`);
 
@@ -217,19 +220,32 @@
     }
 
     // Search engines (with dividers)
+    const faviconPromises = [];
     visibleEngines.forEach((item) => {
       if (item.type === "divider") {
         const divider = document.createElement("span");
         divider.className = "qsp-divider";
         popup.appendChild(divider);
       } else {
-        popup.appendChild(createEngineButton(item, selectedText));
+        const btn = createEngineButton(item, selectedText);
+        if (btn.faviconReady) faviconPromises.push(btn.faviconReady);
+        popup.appendChild(btn);
       }
     });
 
+    // Hide popup until favicons are loaded, then position and show
+    popup.style.visibility = "hidden";
     document.body.appendChild(popup);
 
-    // Position: ensure popup stays within viewport
+    Promise.all(faviconPromises).finally(() => {
+      if (!popup) return;
+      positionPopup(popup, x, y);
+      popup.style.visibility = "";
+      popup.style.animation = "qsp-fade-in 0.12s ease-out";
+    });
+  }
+
+  function positionPopup(popup, x, y) {
     const rect = popup.getBoundingClientRect();
     const viewportW = window.innerWidth;
     const scrollX = window.scrollX;
@@ -238,17 +254,14 @@
     let left = x + scrollX;
     let top = y + scrollY - rect.height - 8;
 
-    // If popup would go above viewport, show below cursor
     if (top - scrollY < 0) {
       top = y + scrollY + 8;
     }
 
-    // If popup would go off right edge
     if (left + rect.width > viewportW + scrollX) {
       left = viewportW + scrollX - rect.width - 8;
     }
 
-    // If popup would go off left edge
     if (left < scrollX) {
       left = scrollX + 8;
     }
