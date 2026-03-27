@@ -207,18 +207,24 @@
     }
 
     // Divider between builtins and search engines
-    const enabledEngines = settings.searchEngines.filter((e) => e.enabled);
+    const visibleEngines = settings.searchEngines.filter((e) => e.type === "divider" || e.enabled);
     const hasBuiltin = (actions.copy && actions.copy.enabled) ||
       (actions.openLink && actions.openLink.enabled && isUrl(selectedText));
-    if (hasBuiltin && enabledEngines.length > 0) {
+    if (hasBuiltin && visibleEngines.length > 0) {
       const divider = document.createElement("span");
       divider.className = "qsp-divider";
       popup.appendChild(divider);
     }
 
-    // Search engines
-    enabledEngines.forEach((engine) => {
-      popup.appendChild(createEngineButton(engine, selectedText));
+    // Search engines (with dividers)
+    visibleEngines.forEach((item) => {
+      if (item.type === "divider") {
+        const divider = document.createElement("span");
+        divider.className = "qsp-divider";
+        popup.appendChild(divider);
+      } else {
+        popup.appendChild(createEngineButton(item, selectedText));
+      }
     });
 
     document.body.appendChild(popup);

@@ -5,6 +5,7 @@ const engineList = document.getElementById("engine-list");
 const newEngineName = document.getElementById("new-engine-name");
 const newEngineUrl = document.getElementById("new-engine-url");
 const addEngineBtn = document.getElementById("add-engine-btn");
+const addDividerBtn = document.getElementById("add-divider-btn");
 const displayMode = document.getElementById("display-mode");
 const iconSize = document.getElementById("icon-size");
 const builtinCopy = document.getElementById("builtin-copy");
@@ -55,9 +56,8 @@ function renderBuiltinActions() {
 function renderEngines() {
   engineList.innerHTML = "";
 
-  settings.searchEngines.forEach((engine, index) => {
+  settings.searchEngines.forEach((item, index) => {
     const row = document.createElement("div");
-    row.className = "engine-row";
     row.draggable = true;
     row.dataset.index = index;
 
@@ -66,21 +66,53 @@ function renderEngines() {
     row.addEventListener("drop", onDrop);
     row.addEventListener("dragend", onDragEnd);
 
+    if (item.type === "divider") {
+      row.className = "engine-row divider-row";
+
+      const dragHandle = document.createElement("span");
+      dragHandle.className = "drag-handle";
+      dragHandle.textContent = "☰";
+
+      const label = document.createElement("span");
+      label.className = "divider-label";
+      label.textContent = "── Divider ──";
+
+      const actions = document.createElement("span");
+      actions.className = "engine-actions";
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "btn btn-small btn-danger";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", () => {
+        settings.searchEngines.splice(index, 1);
+        saveSettings();
+        renderEngines();
+      });
+      actions.appendChild(deleteBtn);
+
+      row.appendChild(dragHandle);
+      row.appendChild(label);
+      row.appendChild(actions);
+      engineList.appendChild(row);
+      return;
+    }
+
+    row.className = "engine-row";
+
     const toggle = document.createElement("input");
     toggle.type = "checkbox";
-    toggle.checked = engine.enabled;
+    toggle.checked = item.enabled;
     toggle.addEventListener("change", () => {
-      engine.enabled = toggle.checked;
+      item.enabled = toggle.checked;
       saveSettings();
     });
 
     const name = document.createElement("span");
     name.className = "engine-name";
-    name.textContent = engine.name;
+    name.textContent = item.name;
 
     const url = document.createElement("span");
     url.className = "engine-url";
-    url.textContent = engine.url;
+    url.textContent = item.url;
 
     const actions = document.createElement("span");
     actions.className = "engine-actions";
@@ -215,6 +247,15 @@ addEngineBtn.addEventListener("click", () => {
 
   newEngineName.value = "";
   newEngineUrl.value = "";
+  saveSettings();
+  renderEngines();
+});
+
+addDividerBtn.addEventListener("click", () => {
+  settings.searchEngines.push({
+    id: `divider-${Date.now()}`,
+    type: "divider"
+  });
   saveSettings();
   renderEngines();
 });
