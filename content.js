@@ -2,7 +2,10 @@
   let popup = null;
   let settings = null;
 
-  // Load settings
+  function matchesDomain(host, domainList) {
+    return domainList.some((d) => host === d || host.endsWith(`.${d}`));
+  }
+
   async function loadSettings() {
     try {
       const response = await browser.runtime.sendMessage({ type: "get-settings" });
@@ -14,10 +17,7 @@
 
   function isDomainExcluded() {
     if (!settings || !settings.excludedDomains) return false;
-    const host = location.hostname.toLowerCase();
-    return settings.excludedDomains.some(
-      (d) => host === d || host.endsWith(`.${d}`)
-    );
+    return matchesDomain(location.hostname.toLowerCase(), settings.excludedDomains);
   }
 
   function getThemeClass() {
@@ -177,8 +177,6 @@
       });
     }
 
-    btn.faviconReady = faviconReady;
-
     btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
 
     btn.addEventListener("mousedown", (e) => {
@@ -194,10 +192,10 @@
       removePopup();
     });
 
-    return btn;
+    return { btn, faviconReady };
   }
 
-  function showPopup(selectedText, x, y) {
+  function showPopup(selectedText, selRect) {
     removePopup();
 
     popup = document.createElement("div");
@@ -221,7 +219,7 @@
     function isDomainIncluded(item) {
       const included = item.includedDomains;
       if (!included || included.length === 0) return true;
-      return included.some((d) => currentHost === d || currentHost.endsWith(`.${d}`));
+      return matchesDomain(currentHost, included);
     }
 
     const visibleEngines = settings.searchEngines.filter((e) => {
@@ -237,48 +235,41 @@
     }
 
     // Search engines (with dividers)
-    const faviconPromises = [];
     visibleEngines.forEach((item) => {
       if (item.type === "divider") {
         const divider = document.createElement("span");
         divider.className = "snaps-divider";
         popup.appendChild(divider);
       } else {
-        const btn = createEngineButton(item, selectedText);
-        if (btn.faviconReady) faviconPromises.push(btn.faviconReady);
+        const { btn } = createEngineButton(item, selectedText);
         popup.appendChild(btn);
       }
     });
 
-    // Hide popup until favicons are loaded, then position and show
-    popup.style.visibility = "hidden";
     document.body.appendChild(popup);
-
-    Promise.all(faviconPromises).finally(() => {
-      if (!popup) return;
-      positionPopup(popup, x, y);
-      popup.style.visibility = "";
-      popup.style.animation = "snaps-fade-in 0.12s ease-out";
-    });
+    positionPopup(popup, selRect);
+    popup.style.animation = "snaps-fade-in 0.12s ease-out";
   }
 
-  function positionPopup(popup, x, y) {
-    const rect = popup.getBoundingClientRect();
-    const viewportW = window.innerWidth;
+  function positionPopup(popup, selRect) {
+    const popupRect = popup.getBoundingClientRect();
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
+    const viewportW = window.innerWidth;
 
-    let left = x + scrollX;
-    let top = y + scrollY - rect.height - 8;
+    // Center horizontally over selection, place above it
+    let left = selRect.left + scrollX + (selRect.width - popupRect.width) / 2;
+    let top = selRect.top + scrollY - popupRect.height - 8;
 
+    // If popup would go above viewport, show below selection
     if (top - scrollY < 0) {
-      top = y + scrollY + 8;
+      top = selRect.bottom + scrollY + 8;
     }
 
-    if (left + rect.width > viewportW + scrollX) {
-      left = viewportW + scrollX - rect.width - 8;
+    // Clamp to viewport edges
+    if (left + popupRect.width > viewportW + scrollX) {
+      left = viewportW + scrollX - popupRect.width - 8;
     }
-
     if (left < scrollX) {
       left = scrollX + 8;
     }
@@ -303,7 +294,9 @@
     await loadSettings();
     if (isDomainExcluded()) return;
 
-    showPopup(selectedText, e.clientX, e.clientY);
+    const range = selection.getRangeAt(0);
+    const selRect = range.getBoundingClientRect();
+    showPopup(selectedText, selRect);
   });
 
   // Remove popup on click outside or scroll

@@ -1,5 +1,9 @@
 let settings = null;
 
+function parseDomainList(input) {
+  return input.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+}
+
 // DOM elements
 const engineList = document.getElementById("engine-list");
 const newEngineName = document.getElementById("new-engine-name");
@@ -100,7 +104,7 @@ function renderEngines() {
         const currentDomains = (item.includedDomains || []).join(", ");
         const newDomains = prompt("Included Domains (comma-separated, empty = all sites):", currentDomains);
         if (newDomains === null) return;
-        item.includedDomains = newDomains.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+        item.includedDomains = parseDomainList(newDomains);
         saveSettings();
         renderEngines();
       });
@@ -194,7 +198,7 @@ function editEngine(index) {
 
   engine.name = newName.trim() || engine.name;
   engine.url = newUrl.trim() || engine.url;
-  engine.includedDomains = newDomains.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+  engine.includedDomains = parseDomainList(newDomains);
   saveSettings();
   renderEngines();
 }
@@ -340,7 +344,7 @@ addDomainBtn.addEventListener("click", () => {
   const input = newDomain.value.trim();
   if (!input) return;
 
-  const domains = input.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+  const domains = parseDomainList(input);
   let added = 0;
   for (const domain of domains) {
     if (!settings.excludedDomains.includes(domain)) {
@@ -385,9 +389,8 @@ importFile.addEventListener("change", (e) => {
         showStatus("Invalid settings file");
         return;
       }
-      imported.searchEngines = imported.searchEngines.map((e) => {
+      imported.searchEngines.forEach((e) => {
         if (e.url && /^javascript:/i.test(e.url.trim())) e.url = "";
-        return e;
       });
       settings = imported;
       await saveSettings();

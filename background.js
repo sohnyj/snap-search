@@ -30,16 +30,21 @@ async function getCachedFavicon(domain) {
   const dataUrl = await fetchFavicon(domain);
   if (dataUrl) {
     await evictFaviconCacheIfNeeded();
-    await browser.storage.local.set({ [cacheKey]: dataUrl });
+    const result = await browser.storage.local.get("favicon_keys");
+    const keys = result.favicon_keys || [];
+    if (!keys.includes(cacheKey)) keys.push(cacheKey);
+    await browser.storage.local.set({ [cacheKey]: dataUrl, favicon_keys: keys });
   }
   return dataUrl;
 }
 
 async function evictFaviconCacheIfNeeded() {
-  const all = await browser.storage.local.get(null);
-  const keys = Object.keys(all).filter((k) => k.startsWith("favicon_"));
+  const result = await browser.storage.local.get("favicon_keys");
+  const keys = result.favicon_keys || [];
   if (keys.length >= FAVICON_CACHE_LIMIT) {
-    await browser.storage.local.remove(keys[0]);
+    const oldest = keys.shift();
+    await browser.storage.local.remove(oldest);
+    await browser.storage.local.set({ favicon_keys: keys });
   }
 }
 
