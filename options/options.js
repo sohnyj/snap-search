@@ -1,5 +1,10 @@
 let settings = null;
 
+function isDangerousUrl(url) {
+  const s = url.trim().toLowerCase();
+  return /^(javascript|data):/i.test(s);
+}
+
 function parseDomainList(input) {
   return input.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
 }
@@ -197,7 +202,12 @@ function editEngine(index) {
   if (newDomains === null) return;
 
   engine.name = newName.trim() || engine.name;
-  engine.url = newUrl.trim() || engine.url;
+  const trimmedUrl = newUrl.trim() || engine.url;
+  if (isDangerousUrl(trimmedUrl)) {
+    showStatus("javascript: and data: URLs are not allowed");
+    return;
+  }
+  engine.url = trimmedUrl;
   engine.includedDomains = parseDomainList(newDomains);
   saveSettings();
   renderEngines();
@@ -277,6 +287,10 @@ addEngineBtn.addEventListener("click", () => {
   }
   if (!url.includes("%s")) {
     showStatus("URL must contain %s as query placeholder");
+    return;
+  }
+  if (isDangerousUrl(url)) {
+    showStatus("javascript: and data: URLs are not allowed");
     return;
   }
 
@@ -390,7 +404,7 @@ importFile.addEventListener("change", (e) => {
         return;
       }
       imported.searchEngines.forEach((e) => {
-        if (e.url && /^javascript:/i.test(e.url.trim())) e.url = "";
+        if (e.url && isDangerousUrl(e.url)) e.url = "";
       });
       settings = imported;
       await saveSettings();

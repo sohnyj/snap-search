@@ -307,9 +307,7 @@
     }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") removePopup();
-  });
+  document.addEventListener("keydown", removePopup);
 
   window.addEventListener("scroll", removePopup, { passive: true });
 })();
