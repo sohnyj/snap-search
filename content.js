@@ -21,14 +21,14 @@
   }
 
   function getThemeClass() {
-    if (!settings) return "qsp-light";
+    if (!settings) return "snaps-light";
     const theme = settings.appearance.theme;
-    if (theme === "light") return "qsp-light";
-    if (theme === "dark") return "qsp-dark";
+    if (theme === "light") return "snaps-light";
+    if (theme === "dark") return "snaps-dark";
     // auto: follow system/browser preference
     return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "qsp-dark"
-      : "qsp-light";
+      ? "snaps-dark"
+      : "snaps-light";
   }
 
   function removePopup() {
@@ -80,7 +80,7 @@
 
   function createBuiltinButton(id, icon, label, selectedText) {
     const btn = document.createElement("button");
-    btn.className = "qsp-btn";
+    btn.className = "snaps-btn";
     btn.title = label;
 
     const iconSize = settings.appearance.iconSize || 16;
@@ -88,22 +88,22 @@
 
     if (displayMode === "label") {
       btn.textContent = label;
-      btn.classList.add("qsp-btn-label");
+      btn.classList.add("snaps-btn-label");
     } else {
       const span = document.createElement("span");
-      span.className = "qsp-btn-icon";
+      span.className = "snaps-btn-icon";
       span.textContent = icon;
       btn.appendChild(span);
 
       if (displayMode === "both") {
         const name = document.createElement("span");
-        name.className = "qsp-btn-name";
+        name.className = "snaps-btn-name";
         name.textContent = label;
         btn.appendChild(name);
       }
     }
 
-    btn.style.setProperty("--qsp-icon-size", `${iconSize}px`);
+    btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
 
     btn.addEventListener("mousedown", (e) => {
       e.preventDefault();
@@ -133,7 +133,7 @@
 
   function createEngineButton(engine, selectedText) {
     const btn = document.createElement("button");
-    btn.className = "qsp-btn";
+    btn.className = "snaps-btn";
     btn.title = engine.name;
 
     const iconSize = settings.appearance.iconSize || 16;
@@ -142,16 +142,16 @@
 
     if (displayMode === "label") {
       btn.textContent = engine.name;
-      btn.classList.add("qsp-btn-label");
+      btn.classList.add("snaps-btn-label");
     } else {
       const placeholder = document.createElement("span");
-      placeholder.className = "qsp-btn-text";
+      placeholder.className = "snaps-btn-text";
       placeholder.textContent = engine.name.charAt(0).toUpperCase();
       btn.appendChild(placeholder);
 
       if (displayMode === "both") {
         const label = document.createElement("span");
-        label.className = "qsp-btn-name";
+        label.className = "snaps-btn-name";
         label.textContent = engine.name;
         btn.appendChild(label);
       }
@@ -159,10 +159,10 @@
       faviconReady = getFavicon(engine.url).then((dataUrl) => {
         if (dataUrl && btn.isConnected) {
           const holder = document.createElement("span");
-          holder.className = "qsp-favicon-holder";
+          holder.className = "snaps-favicon-holder";
           const img = document.createElement("img");
           img.src = dataUrl;
-          img.className = "qsp-favicon";
+          img.className = "snaps-favicon";
           img.alt = engine.name;
           holder.appendChild(img);
           placeholder.replaceWith(holder);
@@ -172,7 +172,7 @@
 
     btn.faviconReady = faviconReady;
 
-    btn.style.setProperty("--qsp-icon-size", `${iconSize}px`);
+    btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
 
     btn.addEventListener("mousedown", (e) => {
       e.preventDefault();
@@ -194,7 +194,7 @@
     removePopup();
 
     popup = document.createElement("div");
-    popup.id = "qsp-popup";
+    popup.id = "snaps-popup";
     popup.className = getThemeClass();
 
     const actions = settings.builtinActions || {};
@@ -210,12 +210,12 @@
     }
 
     // Divider between builtins and search engines
-    const visibleEngines = settings.searchEngines.filter((e) => e.type === "divider" || e.enabled);
+    const visibleEngines = settings.searchEngines.filter((e) => (e.type === "divider" && e.enabled !== false) || e.enabled);
     const hasBuiltin = (actions.copy && actions.copy.enabled) ||
       (actions.openLink && actions.openLink.enabled && isUrl(selectedText));
     if (hasBuiltin && visibleEngines.length > 0) {
       const divider = document.createElement("span");
-      divider.className = "qsp-divider";
+      divider.className = "snaps-divider";
       popup.appendChild(divider);
     }
 
@@ -224,7 +224,7 @@
     visibleEngines.forEach((item) => {
       if (item.type === "divider") {
         const divider = document.createElement("span");
-        divider.className = "qsp-divider";
+        divider.className = "snaps-divider";
         popup.appendChild(divider);
       } else {
         const btn = createEngineButton(item, selectedText);
@@ -241,7 +241,7 @@
       if (!popup) return;
       positionPopup(popup, x, y);
       popup.style.visibility = "";
-      popup.style.animation = "qsp-fade-in 0.12s ease-out";
+      popup.style.animation = "snaps-fade-in 0.12s ease-out";
     });
   }
 
@@ -273,7 +273,7 @@
   // Listen for text selection
   document.addEventListener("mouseup", async (e) => {
     // Ignore clicks on our popup
-    if (e.target.closest && e.target.closest("#qsp-popup")) return;
+    if (e.target.closest && e.target.closest("#snaps-popup")) return;
 
     const selection = window.getSelection();
     const selectedText = selection ? selection.toString().trim() : "";

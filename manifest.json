@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Quick Search Popup",
-  "version": "1.0.0",
+  "name": "Snap Search",
+  "version": "0.1",
   "description": "Select text to search with customizable search engines via a popup",
   "browser_specific_settings": {
     "gecko": {
@@ -18,7 +18,7 @@
     "tabs"
   ],
   "action": {
-    "default_title": "Quick Search Popup Settings"
+    "default_title": "Snap Search Settings"
   },
   "background": {
     "scripts": ["lib/defaults.js", "background.js"]

@@ -1,6 +1,6 @@
-/* Quick Search Popup - Content Script Styles */
+/* Snap Search - Content Script Styles */
 
-#qsp-popup {
+#snaps-popup {
   position: absolute;
   z-index: 2147483647;
   display: flex;
@@ -16,27 +16,27 @@
   user-select: none;
 }
 
-@keyframes qsp-fade-in {
+@keyframes snaps-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
 /* Light theme */
-#qsp-popup.qsp-light {
+#snaps-popup.snaps-light {
   background: #f9f9fb;
   border: 1px solid #cfcfd8;
   color: #15141a;
 }
 
 /* Dark theme (not 100% black) */
-#qsp-popup.qsp-dark {
+#snaps-popup.snaps-dark {
   background: #2b2a33;
   border: 1px solid #52525e;
   color: #fbfbfe;
 }
 
 /* Buttons */
-.qsp-btn {
+.snaps-btn {
   all: unset;
   display: inline-flex;
   align-items: center;
@@ -45,36 +45,36 @@
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
-  min-width: var(--qsp-icon-size, 16px);
-  min-height: var(--qsp-icon-size, 16px);
+  min-width: var(--snaps-icon-size, 16px);
+  min-height: var(--snaps-icon-size, 16px);
   box-sizing: border-box;
   transition: background-color 0.1s;
 }
 
-.qsp-light .qsp-btn:hover {
+.snaps-light .snaps-btn:hover {
   background: #e0e0e6;
 }
 
-.qsp-dark .qsp-btn:hover {
+.snaps-dark .snaps-btn:hover {
   background: #3f3f48;
 }
 
-.qsp-btn:active {
+.snaps-btn:active {
   opacity: 0.8;
 }
 
 /* Favicon image */
-.qsp-favicon-holder {
+.snaps-favicon-holder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--qsp-icon-size, 16px);
-  height: var(--qsp-icon-size, 16px);
+  width: var(--snaps-icon-size, 16px);
+  height: var(--snaps-icon-size, 16px);
   border-radius: 4px;
   overflow: hidden;
 }
 
-.qsp-favicon {
+.snaps-favicon {
   display: block;
   width: 100%;
   height: 100%;
@@ -82,64 +82,64 @@
 }
 
 /* Text placeholder (first letter) */
-.qsp-btn-text {
+.snaps-btn-text {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--qsp-icon-size, 16px);
-  height: var(--qsp-icon-size, 16px);
-  font-size: calc(var(--qsp-icon-size, 16px) * 0.7);
+  width: var(--snaps-icon-size, 16px);
+  height: var(--snaps-icon-size, 16px);
+  font-size: calc(var(--snaps-icon-size, 16px) * 0.7);
   font-weight: 600;
   border-radius: 4px;
 }
 
-.qsp-light .qsp-btn-text {
+.snaps-light .snaps-btn-text {
   background: #e0e0e6;
   color: #15141a;
 }
 
-.qsp-dark .qsp-btn-text {
+.snaps-dark .snaps-btn-text {
   background: #52525e;
   color: #fbfbfe;
 }
 
 /* Label mode */
-.qsp-btn-label {
+.snaps-btn-label {
   padding: 4px 8px;
   font-size: 12px;
 }
 
 /* Name label next to favicon (both mode) */
-.qsp-btn-name {
+.snaps-btn-name {
   font-size: 12px;
   padding-right: 2px;
 }
 
 /* Builtin unicode icon (no background) */
-.qsp-btn-icon {
+.snaps-btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--qsp-icon-size, 16px);
-  height: var(--qsp-icon-size, 16px);
-  font-size: var(--qsp-icon-size, 16px);
+  width: var(--snaps-icon-size, 16px);
+  height: var(--snaps-icon-size, 16px);
+  font-size: var(--snaps-icon-size, 16px);
   line-height: 1;
   vertical-align: middle;
   font-family: "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 
 /* Divider */
-.qsp-divider {
+.snaps-divider {
   display: inline-block;
   width: 1px;
   height: 16px;
   margin: 0 2px;
 }
 
-.qsp-light .qsp-divider {
+.snaps-light .snaps-divider {
   background: #cfcfd8;
 }
 
-.qsp-dark .qsp-divider {
+.snaps-dark .snaps-divider {
   background: #52525e;
 }

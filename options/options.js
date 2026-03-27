@@ -73,6 +73,14 @@ function renderEngines() {
       dragHandle.className = "drag-handle";
       dragHandle.textContent = "☰";
 
+      const toggle = document.createElement("input");
+      toggle.type = "checkbox";
+      toggle.checked = item.enabled !== false;
+      toggle.addEventListener("change", () => {
+        item.enabled = toggle.checked;
+        saveSettings();
+      });
+
       const label = document.createElement("span");
       label.className = "divider-label";
       label.textContent = "── Divider ──";
@@ -90,6 +98,7 @@ function renderEngines() {
       actions.appendChild(deleteBtn);
 
       row.appendChild(dragHandle);
+      row.appendChild(toggle);
       row.appendChild(label);
       row.appendChild(actions);
       engineList.appendChild(row);

@@ -33,39 +33,41 @@ async function getCachedFavicon(domain) {
 
 // Fetch favicon with high resolution, respects Firefox proxy settings
 async function fetchFavicon(domain) {
-  const urls = [
-    `https://${domain}/apple-touch-icon.png`,
-    `https://${domain}/apple-touch-icon-precomposed.png`,
-    `https://${domain}/favicon-32x32.png`,
-    `https://${domain}/favicon.ico`
-  ];
-
-  for (const url of urls) {
-    try {
-      const response = await fetch(url, { redirect: "follow" });
-      if (!response.ok) continue;
-
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.startsWith("image/") && !contentType.includes("icon")) continue;
-
-      const blob = await response.blob();
-      if (blob.size < 100) continue;
-
-      return await blobToDataUrl(blob);
-    } catch {
-      // Try next URL
-    }
-  }
-
-  // Fallback: try parsing HTML for high-res icon link
+  // Try parsing HTML: PWA manifest first, then standard icon links
   try {
     const html = await fetch(`https://${domain}/`, { redirect: "follow" }).then((r) => r.text());
+
+    // 1. PWA manifest
+    const pwaUrl = await extractPwaIconUrl(html, domain);
+    if (pwaUrl) {
+      const response = await fetch(pwaUrl, { redirect: "follow" });
+      if (response.ok) {
+        const blob = await response.blob();
+        if (blob.size >= 100) return await blobToDataUrl(blob);
+      }
+    }
+
+    // 2. Standard icon link tags (no apple-touch-icon)
     const iconUrl = extractIconUrl(html, domain);
     if (iconUrl) {
       const response = await fetch(iconUrl, { redirect: "follow" });
       if (response.ok) {
         const blob = await response.blob();
-        return await blobToDataUrl(blob);
+        if (blob.size >= 100) return await blobToDataUrl(blob);
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  // 3. Fallback: favicon.ico
+  try {
+    const response = await fetch(`https://${domain}/favicon.ico`, { redirect: "follow" });
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.startsWith("image/") || contentType.includes("icon")) {
+        const blob = await response.blob();
+        if (blob.size >= 100) return await blobToDataUrl(blob);
       }
     }
   } catch {
@@ -75,10 +77,53 @@ async function fetchFavicon(domain) {
   return null;
 }
 
+// Resolve a URL relative to a domain root
+function resolveUrl(href, domain) {
+  if (href.startsWith("//")) return `https:${href}`;
+  if (href.startsWith("/")) return `https://${domain}${href}`;
+  if (href.startsWith("http")) return href;
+  return `https://${domain}/${href}`;
+}
+
+// Extract the best icon URL from a PWA manifest
+async function extractPwaIconUrl(html, domain) {
+  const manifestMatch = html.match(/< *link[^>]*rel=["']manifest["'][^>]*href=["']([^"']+)["']/i)
+    || html.match(/< *link[^>]*href=["']([^"']+)["'][^>]*rel=["']manifest["']/i);
+  if (!manifestMatch) return null;
+
+  const manifestUrl = resolveUrl(manifestMatch[1], domain);
+  try {
+    const res = await fetch(manifestUrl, { redirect: "follow" });
+    if (!res.ok) return null;
+    const manifest = await res.json();
+    const icons = manifest.icons;
+    if (!Array.isArray(icons) || icons.length === 0) return null;
+
+    // Prefer purpose "any" or unset, pick largest size
+    const candidates = icons.filter((ic) => !ic.purpose || ic.purpose.split(" ").includes("any"));
+    const pool = candidates.length > 0 ? candidates : icons;
+
+    let bestUrl = null;
+    let bestSize = 0;
+    for (const ic of pool) {
+      if (!ic.src) continue;
+      const sizeStr = (ic.sizes || "").split(" ")[0];
+      const size = parseInt(sizeStr) || 0;
+      if (size > bestSize) {
+        bestSize = size;
+        bestUrl = resolveUrl(ic.src, domain);
+      }
+    }
+    return bestUrl;
+  } catch {
+    return null;
+  }
+}
+
 function extractIconUrl(html, domain) {
   const patterns = [
-    /< *link[^>]*rel=["'](?:apple-touch-icon|icon|shortcut icon)["'][^>]*href=["']([^"']+)["']/gi,
-    /< *link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:apple-touch-icon|icon|shortcut icon)["']/gi
+    /< *link[^>]*rel=["'](?:icon|shortcut icon)["'][^>]*href=["']([^"']+)["']/gi,
+    /< *link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:icon|shortcut icon)["']/gi
   ];
 
   let bestUrl = null;
@@ -99,11 +144,7 @@ function extractIconUrl(html, domain) {
   }
 
   if (!bestUrl) return null;
-
-  if (bestUrl.startsWith("//")) return `https:${bestUrl}`;
-  if (bestUrl.startsWith("/")) return `https://${domain}${bestUrl}`;
-  if (bestUrl.startsWith("http")) return bestUrl;
-  return `https://${domain}/${bestUrl}`;
+  return resolveUrl(bestUrl, domain);
 }
 
 function blobToDataUrl(blob) {
