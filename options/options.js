@@ -116,6 +116,7 @@ function renderEngines() {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "engine-domains edit-input";
+        input.style.width = domains.offsetWidth + "px";
         input.value = (item.includedDomains || []).join(", ");
         input.placeholder = "Domains (empty = all)";
         domains.replaceWith(input);
@@ -231,6 +232,7 @@ function editEngine(index) {
     const input = document.createElement("input");
     input.type = "text";
     input.className = span.className + " edit-input";
+    input.style.width = Math.max(span.offsetWidth, 120) + "px";
     input.value = value;
     input.placeholder = placeholder;
     span.replaceWith(input);

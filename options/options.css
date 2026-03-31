@@ -38,7 +38,7 @@ body {
 }
 
 .container {
-  max-width: 720px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -175,7 +175,7 @@ h2 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 160px;
+  max-width: 260px;
   opacity: 0.7;
 }
 
