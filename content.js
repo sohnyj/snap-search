@@ -295,7 +295,14 @@
     if (isDomainExcluded()) return;
 
     const range = selection.getRangeAt(0);
-    const selRect = range.getBoundingClientRect();
+    let selRect = range.getBoundingClientRect();
+
+    // Fallback: some sites (e.g. GitHub code viewer) manage selection via JS,
+    // causing getBoundingClientRect() to return a zero-size rect.
+    if (!selRect.width && !selRect.height) {
+      selRect = { left: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
+    }
+
     showPopup(selectedText, selRect);
   });
 

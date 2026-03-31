@@ -1,5 +1,13 @@
 /* Snap Search - Content Script Styles */
 
+/* Reset: isolate popup from host page styles */
+#snaps-popup,
+#snaps-popup *,
+#snaps-popup *::before,
+#snaps-popup *::after {
+  all: initial;
+}
+
 #snaps-popup {
   position: absolute;
   z-index: 2147483647;
@@ -35,8 +43,7 @@
 }
 
 /* Buttons */
-.snaps-btn {
-  all: unset;
+#snaps-popup .snaps-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -50,20 +57,20 @@
   transition: background-color 0.1s;
 }
 
-.snaps-light .snaps-btn:hover {
+#snaps-popup.snaps-light .snaps-btn:hover {
   background: #e0e0e6;
 }
 
-.snaps-dark .snaps-btn:hover {
+#snaps-popup.snaps-dark .snaps-btn:hover {
   background: #3f3f48;
 }
 
-.snaps-btn:active {
+#snaps-popup .snaps-btn:active {
   opacity: 0.8;
 }
 
 /* Favicon image */
-.snaps-favicon-holder {
+#snaps-popup .snaps-favicon-holder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +78,7 @@
   height: var(--snaps-icon-size, 16px);
 }
 
-.snaps-favicon {
+#snaps-popup .snaps-favicon {
   display: block;
   width: 100%;
   height: 100%;
@@ -80,7 +87,7 @@
 }
 
 /* Text placeholder (first letter) */
-.snaps-btn-text {
+#snaps-popup .snaps-btn-text {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -91,30 +98,30 @@
   border-radius: 4px;
 }
 
-.snaps-light .snaps-btn-text {
+#snaps-popup.snaps-light .snaps-btn-text {
   background: #e0e0e6;
   color: #15141a;
 }
 
-.snaps-dark .snaps-btn-text {
+#snaps-popup.snaps-dark .snaps-btn-text {
   background: #52525e;
   color: #fbfbfe;
 }
 
 /* Label mode */
-.snaps-btn-label {
+#snaps-popup .snaps-btn-label {
   padding: 4px 8px;
   font-size: 12px;
 }
 
 /* Name label next to favicon (both mode) */
-.snaps-btn-name {
+#snaps-popup .snaps-btn-name {
   font-size: 12px;
   padding-right: 2px;
 }
 
 /* Builtin unicode icon (no background) */
-.snaps-btn-icon {
+#snaps-popup .snaps-btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -127,17 +134,17 @@
 }
 
 /* Divider */
-.snaps-divider {
+#snaps-popup .snaps-divider {
   display: inline-block;
   width: 1px;
   height: 16px;
   margin: 0 2px;
 }
 
-.snaps-light .snaps-divider {
+#snaps-popup.snaps-light .snaps-divider {
   background: #cfcfd8;
 }
 
-.snaps-dark .snaps-divider {
+#snaps-popup.snaps-dark .snaps-divider {
   background: #52525e;
 }
