@@ -13,10 +13,52 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case "fetch-favicon":
       return getCachedFavicon(message.domain).then((dataUrl) => ({ dataUrl })).catch(() => ({ dataUrl: null }));
 
+    case "convert-currency":
+      return convertCurrency(message.from, message.to, message.amount)
+        .then((result) => ({ result }))
+        .catch(() => ({ result: null }));
+
     case "get-settings":
       return getSettings().then((settings) => ({ settings }));
   }
 });
+
+const CURRENCY_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const CURRENCY_CACHE_LIMIT = 30;
+let currencyCache = {};
+
+async function convertCurrency(from, to, amount) {
+  const cacheKey = `${from}_${to}`;
+  const now = Date.now();
+  if (currencyCache[cacheKey] && now - currencyCache[cacheKey].time < CURRENCY_CACHE_TTL) {
+    return Math.round(amount * currencyCache[cacheKey].rate * 100) / 100;
+  }
+
+  const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${from}&symbols=${to}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const rate = data.rates?.[to];
+  if (!rate) return null;
+
+  // Evict expired or oldest entries when cache is full
+  const keys = Object.keys(currencyCache);
+  if (keys.length >= CURRENCY_CACHE_LIMIT) {
+    let oldestKey = keys[0];
+    for (const k of keys) {
+      if (now - currencyCache[k].time >= CURRENCY_CACHE_TTL) {
+        delete currencyCache[k];
+      } else if (currencyCache[k].time < currencyCache[oldestKey].time) {
+        oldestKey = k;
+      }
+    }
+    if (Object.keys(currencyCache).length >= CURRENCY_CACHE_LIMIT) {
+      delete currencyCache[oldestKey];
+    }
+  }
+
+  currencyCache[cacheKey] = { rate, time: now };
+  return Math.round(amount * rate * 100) / 100;
+}
 
 const FAVICON_MAX_BYTES = 200 * 1024; // 200KB per favicon
 const FAVICON_CACHE_LIMIT = 50;       // max cached favicons

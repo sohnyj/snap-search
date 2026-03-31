@@ -19,6 +19,8 @@ const displayMode = document.getElementById("display-mode");
 const iconSize = document.getElementById("icon-size");
 const builtinCopy = document.getElementById("builtin-copy");
 const builtinOpenLink = document.getElementById("builtin-openlink");
+const builtinCurrency = document.getElementById("builtin-currency");
+const targetCurrency = document.getElementById("target-currency");
 const themeSelect = document.getElementById("theme-select");
 const openBackground = document.getElementById("open-background");
 const excludedList = document.getElementById("excluded-list");
@@ -60,10 +62,12 @@ function renderBuiltinActions() {
   const actions = settings.builtinActions || {};
   builtinCopy.checked = actions.copy ? actions.copy.enabled : true;
   builtinOpenLink.checked = actions.openLink ? actions.openLink.enabled : true;
+  builtinCurrency.checked = actions.currency ? actions.currency.enabled : true;
+  targetCurrency.value = actions.currency?.targetCurrency || "KRW";
 }
 
 function renderEngines() {
-  engineList.innerHTML = "";
+  const fragment = document.createDocumentFragment();
 
   settings.searchEngines.forEach((item, index) => {
     const row = document.createElement("div");
@@ -106,12 +110,32 @@ function renderEngines() {
       editBtn.className = "btn btn-small";
       editBtn.textContent = "Edit";
       editBtn.addEventListener("click", () => {
-        const currentDomains = (item.includedDomains || []).join(", ");
-        const newDomains = prompt("Included Domains (comma-separated, empty = all sites):", currentDomains);
-        if (newDomains === null) return;
-        item.includedDomains = parseDomainList(newDomains);
-        saveSettings();
-        renderEngines();
+        if (row.dataset.editing === "true") return;
+        row.dataset.editing = "true";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "engine-domains edit-input";
+        input.value = (item.includedDomains || []).join(", ");
+        input.placeholder = "Domains (empty = all)";
+        domains.replaceWith(input);
+
+        editBtn.textContent = "Save";
+
+        function save() {
+          if (row.dataset.editing !== "true") return;
+          row.dataset.editing = "";
+          item.includedDomains = parseDomainList(input.value);
+          saveSettings();
+          renderEngines();
+        }
+
+        editBtn.onclick = save;
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") renderEngines();
+        });
+        input.focus();
       });
 
       const deleteBtn = document.createElement("button");
@@ -130,7 +154,7 @@ function renderEngines() {
       row.appendChild(label);
       row.appendChild(domains);
       row.appendChild(actions);
-      engineList.appendChild(row);
+      fragment.appendChild(row);
       return;
     }
 
@@ -187,30 +211,66 @@ function renderEngines() {
     row.appendChild(url);
     row.appendChild(domains);
     row.appendChild(actions);
-    engineList.appendChild(row);
+    fragment.appendChild(row);
   });
+
+  engineList.replaceChildren(fragment);
 }
 
 function editEngine(index) {
   const engine = settings.searchEngines[index];
-  const newName = prompt("Name:", engine.name);
-  if (newName === null) return;
-  const newUrl = prompt("URL (use %s for query):", engine.url);
-  if (newUrl === null) return;
-  const currentDomains = (engine.includedDomains || []).join(", ");
-  const newDomains = prompt("Included Domains (comma-separated, empty = all sites):", currentDomains);
-  if (newDomains === null) return;
+  const row = engineList.children[index];
+  if (!row || row.dataset.editing === "true") return;
+  row.dataset.editing = "true";
 
-  engine.name = newName.trim() || engine.name;
-  const trimmedUrl = newUrl.trim() || engine.url;
-  if (isDangerousUrl(trimmedUrl)) {
-    showStatus("javascript: and data: URLs are not allowed");
-    return;
+  const nameSpan = row.querySelector(".engine-name");
+  const urlSpan = row.querySelector(".engine-url");
+  const domainsSpan = row.querySelector(".engine-domains");
+
+  function makeInput(span, value, placeholder) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = span.className + " edit-input";
+    input.value = value;
+    input.placeholder = placeholder;
+    span.replaceWith(input);
+    return input;
   }
-  engine.url = trimmedUrl;
-  engine.includedDomains = parseDomainList(newDomains);
-  saveSettings();
-  renderEngines();
+
+  const nameInput = makeInput(nameSpan, engine.name, "Name");
+  const urlInput = makeInput(urlSpan, engine.url, "URL with %s");
+  const domainsInput = makeInput(domainsSpan, (engine.includedDomains || []).join(", "), "Domains (empty = all)");
+
+  const editBtn = row.querySelector(".btn-small:not(.btn-danger)");
+  editBtn.textContent = "Save";
+
+  function save() {
+    if (row.dataset.editing !== "true") return;
+    row.dataset.editing = "";
+
+    const newName = nameInput.value.trim() || engine.name;
+    const newUrl = urlInput.value.trim() || engine.url;
+    if (isDangerousUrl(newUrl)) {
+      showStatus("javascript: and data: URLs are not allowed");
+      renderEngines();
+      return;
+    }
+    engine.name = newName;
+    engine.url = newUrl;
+    engine.includedDomains = parseDomainList(domainsInput.value);
+    saveSettings();
+    renderEngines();
+  }
+
+  editBtn.onclick = save;
+  [nameInput, urlInput, domainsInput].forEach((input) => {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") renderEngines();
+    });
+  });
+
+  nameInput.focus();
 }
 
 // Drag and drop reordering
@@ -341,6 +401,20 @@ builtinOpenLink.addEventListener("change", () => {
   if (!settings.builtinActions) settings.builtinActions = {};
   if (!settings.builtinActions.openLink) settings.builtinActions.openLink = {};
   settings.builtinActions.openLink.enabled = builtinOpenLink.checked;
+  saveSettings();
+});
+
+builtinCurrency.addEventListener("change", () => {
+  if (!settings.builtinActions) settings.builtinActions = {};
+  if (!settings.builtinActions.currency) settings.builtinActions.currency = { targetCurrency: "KRW" };
+  settings.builtinActions.currency.enabled = builtinCurrency.checked;
+  saveSettings();
+});
+
+targetCurrency.addEventListener("change", () => {
+  if (!settings.builtinActions) settings.builtinActions = {};
+  if (!settings.builtinActions.currency) settings.builtinActions.currency = { enabled: true };
+  settings.builtinActions.currency.targetCurrency = targetCurrency.value;
   saveSettings();
 });
 

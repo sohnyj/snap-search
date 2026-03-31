@@ -55,6 +55,33 @@
     return false;
   }
 
+  const CURRENCY_SYMBOL_MAP = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'CNY', '₩': 'KRW', '元': 'CNY', '円': 'JPY' };
+  const CURRENCY_CODE_MAP = { 'RMB': 'CNY', 'YUAN': 'CNY' };
+  const CURRENCY_PATTERNS = (() => {
+    const codes = 'USD|EUR|GBP|JPY|KRW|CNY|RMB|CAD|AUD|CHF|HKD|SGD|THB|INR|BRL|MXN|SEK|NOK|DKK|PLN|CZK|HUF|IDR|ILS|ISK|MYR|NZD|PHP|RON|TRY|ZAR';
+    const syms = '\\$|€|£|¥|₩|元|円';
+    const words = 'Yuan';
+    const amt = '[\\d,]+(?:\\.\\d+)?';
+    const cur = `${codes}|${syms}|${words}`;
+    return [
+      new RegExp(`(?<cur>${cur})\\s?(?<amt>${amt})`, 'i'),
+      new RegExp(`(?<amt>${amt})\\s?(?<cur>${cur})`, 'i'),
+    ];
+  })();
+
+  function parseCurrency(text) {
+    for (const p of CURRENCY_PATTERNS) {
+      const m = text.match(p);
+      if (m) {
+        const raw = m.groups.cur;
+        const code = CURRENCY_SYMBOL_MAP[raw] || CURRENCY_CODE_MAP[raw.toUpperCase()] || raw.toUpperCase();
+        const amount = parseFloat(m.groups.amt.replace(/,/g, ''));
+        if (code && !isNaN(amount) && amount > 0) return { code, amount };
+      }
+    }
+    return null;
+  }
+
   async function getFavicon(engineUrl) {
     if (!engineUrl) return null;
     let domain;
@@ -94,16 +121,8 @@
       span.className = "snaps-btn-icon";
       span.textContent = icon;
       btn.appendChild(span);
-
-      if (displayMode === "both") {
-        const name = document.createElement("span");
-        name.className = "snaps-btn-name";
-        name.textContent = label;
-        btn.appendChild(name);
-      }
+      btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
     }
-
-    btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
 
     btn.addEventListener("mousedown", (e) => {
       e.preventDefault();
@@ -126,6 +145,7 @@
         browser.runtime.sendMessage({ type: "open-tab", url, background: settings.openInBackground });
         removePopup();
       }
+
     });
 
     return btn;
@@ -149,13 +169,6 @@
       placeholder.textContent = engine.name.charAt(0).toUpperCase();
       btn.appendChild(placeholder);
 
-      if (displayMode === "both") {
-        const label = document.createElement("span");
-        label.className = "snaps-btn-name";
-        label.textContent = engine.name;
-        btn.appendChild(label);
-      }
-
       faviconReady = getFavicon(engine.url).then((dataUrl) => {
         if (!dataUrl || !btn.isConnected) return;
         return new Promise((resolve) => {
@@ -175,9 +188,9 @@
           img.src = dataUrl;
         });
       });
-    }
 
-    btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
+      btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
+    }
 
     btn.addEventListener("mousedown", (e) => {
       e.preventDefault();
@@ -202,6 +215,13 @@
     popup.id = "snaps-popup";
     popup.className = getThemeClass();
 
+    const iconSize = settings.appearance.iconSize || 16;
+    const displayMode = settings.appearance.displayMode || "favicon";
+    popup.dataset.mode = displayMode;
+    if (displayMode !== "label") {
+      popup.style.setProperty("--snaps-icon-size", `${iconSize}px`);
+    }
+
     const actions = settings.builtinActions || {};
 
     // Builtin: Copy
@@ -212,6 +232,29 @@
     // Builtin: Open Link (only if selected text is a URL)
     if (actions.openLink && actions.openLink.enabled && isUrl(selectedText)) {
       popup.appendChild(createBuiltinButton("openLink", "🔗", "Open Link", selectedText));
+    }
+
+    // Builtin: Currency
+    const parsed = parseCurrency(selectedText);
+    const currencyTarget = actions.currency?.targetCurrency || "KRW";
+    if (actions.currency?.enabled && parsed && parsed.code !== currencyTarget) {
+      const currencyBtn = createBuiltinButton("currency", "💱", "Convert", selectedText);
+      currencyBtn.addEventListener("click", () => {
+        currencyBtn.disabled = true;
+        browser.runtime.sendMessage({
+          type: "convert-currency",
+          from: parsed.code, to: currencyTarget, amount: parsed.amount
+        }).then((resp) => {
+          if (resp && resp.result !== null) {
+            showConversionResult(currencyBtn, `${Math.round(resp.result).toLocaleString()} ${currencyTarget}`);
+          } else {
+            showConversionResult(currencyBtn, "Conversion failed");
+          }
+        }).catch(() => {
+          showConversionResult(currencyBtn, "Conversion failed");
+        });
+      });
+      popup.appendChild(currencyBtn);
     }
 
     // Divider between builtins and search engines
@@ -227,7 +270,8 @@
       return e.enabled && isDomainIncluded(e);
     });
     const hasBuiltin = (actions.copy && actions.copy.enabled) ||
-      (actions.openLink && actions.openLink.enabled && isUrl(selectedText));
+      (actions.openLink && actions.openLink.enabled && isUrl(selectedText)) ||
+      (actions.currency?.enabled && parsed && parsed.code !== currencyTarget);
     if (hasBuiltin && visibleEngines.length > 0) {
       const divider = document.createElement("span");
       divider.className = "snaps-divider";
@@ -249,6 +293,28 @@
     document.body.appendChild(popup);
     positionPopup(popup, selRect);
     popup.style.animation = "snaps-fade-in 0.12s ease-out";
+  }
+
+  function showConversionResult(btn, text) {
+    if (!btn || !btn.isConnected) return;
+    let result = btn.nextElementSibling;
+    if (!result || !result.classList.contains("snaps-conversion-result")) {
+      result = document.createElement("span");
+      result.className = "snaps-conversion-result";
+      result.style.cursor = "pointer";
+      result.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard.writeText(result.textContent.replace(/\s*[A-Z]{3}$/, '')).catch(() => {});
+        removePopup();
+      });
+      result.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      btn.after(result);
+    }
+    result.textContent = text;
   }
 
   function positionPopup(popup, selRect) {

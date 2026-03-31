@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Snap Search",
-  "version": "0.3.1",
+  "version": "0.4",
   "description": "Select text to search with customizable search engines via a popup",
   "browser_specific_settings": {
     "gecko": {
@@ -16,6 +16,9 @@
     "storage",
     "activeTab",
     "tabs"
+  ],
+  "host_permissions": [
+    "https://api.frankfurter.dev/*"
   ],
   "action": {
     "default_title": "Snap Search Settings"

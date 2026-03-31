@@ -55,6 +55,11 @@
   min-height: var(--snaps-icon-size, 16px);
   box-sizing: border-box;
   transition: background-color 0.1s;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: inherit;
 }
 
 #snaps-popup.snaps-light .snaps-btn:hover {
@@ -114,12 +119,6 @@
   font-size: 12px;
 }
 
-/* Name label next to favicon (both mode) */
-#snaps-popup .snaps-btn-name {
-  font-size: 12px;
-  padding-right: 2px;
-}
-
 /* Builtin unicode icon (no background) */
 #snaps-popup .snaps-btn-icon {
   display: inline-flex;
@@ -147,4 +146,29 @@
 
 #snaps-popup.snaps-dark .snaps-divider {
   background: #52525e;
+}
+
+/* Conversion result */
+#snaps-popup .snaps-conversion-result {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-family: inherit;
+  font-size: calc(var(--snaps-icon-size, 16px) * 0.7);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+#snaps-popup.snaps-light .snaps-conversion-result {
+  background: #e0e0e6;
+  color: #15141a;
+}
+
+#snaps-popup.snaps-dark .snaps-conversion-result {
+  background: #3f3f48;
+  color: #fbfbfe;
+}
+
+#snaps-popup[data-mode="label"] .snaps-conversion-result {
+  font-size: inherit;
 }

@@ -185,6 +185,17 @@ h2 {
   flex-shrink: 0;
 }
 
+/* Inline edit inputs */
+.edit-input {
+  padding: 2px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+
 /* Divider row in engine list */
 .divider-row {
   opacity: 0.7;
