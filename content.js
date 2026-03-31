@@ -55,14 +55,13 @@
     return false;
   }
 
-  const CURRENCY_SYMBOL_MAP = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'CNY', '₩': 'KRW', '元': 'CNY', '円': 'JPY' };
+  const CURRENCY_SYMBOL_MAP = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₩': 'KRW', '元': 'CNY', '円': 'JPY' };
   const CURRENCY_CODE_MAP = { 'RMB': 'CNY', 'YUAN': 'CNY' };
   const CURRENCY_PATTERNS = (() => {
     const codes = 'USD|EUR|GBP|JPY|KRW|CNY|RMB|CAD|AUD|CHF|HKD|SGD|THB|INR|BRL|MXN|SEK|NOK|DKK|PLN|CZK|HUF|IDR|ILS|ISK|MYR|NZD|PHP|RON|TRY|ZAR';
     const syms = '\\$|€|£|¥|₩|元|円';
-    const words = 'Yuan';
     const amt = '[\\d,]+(?:\\.\\d+)?';
-    const cur = `${codes}|${syms}|${words}`;
+    const cur = `${codes}|${syms}`;
     return [
       new RegExp(`(?<cur>${cur})\\s?(?<amt>${amt})`, 'i'),
       new RegExp(`(?<amt>${amt})\\s?(?<cur>${cur})`, 'i'),
