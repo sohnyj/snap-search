@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Snap Search",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Select text to search with customizable search engines via a popup",
   "browser_specific_settings": {
     "gecko": {

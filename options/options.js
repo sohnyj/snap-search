@@ -116,9 +116,8 @@ function renderEngines() {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "engine-domains edit-input";
-        input.style.width = Math.max(domains.offsetWidth, 120) + "px";
         input.value = (item.includedDomains || []).join(", ");
-        input.placeholder = "Domains (empty = all)";
+        input.placeholder = "Included domains (empty = all)";
         domains.replaceWith(input);
 
         editBtn.textContent = "Save";
@@ -228,24 +227,19 @@ function editEngine(index) {
   const urlSpan = row.querySelector(".engine-url");
   const domainsSpan = row.querySelector(".engine-domains");
 
-  const nameWidth = Math.max(nameSpan.offsetWidth, 120);
-  const urlWidth = Math.max(urlSpan.offsetWidth, 120);
-  const domainsWidth = Math.max(domainsSpan.offsetWidth, 120);
-
-  function makeInput(span, value, placeholder, width) {
+  function makeInput(span, value, placeholder) {
     const input = document.createElement("input");
     input.type = "text";
     input.className = span.className + " edit-input";
-    input.style.width = width + "px";
     input.value = value;
     input.placeholder = placeholder;
     span.replaceWith(input);
     return input;
   }
 
-  const nameInput = makeInput(nameSpan, engine.name, "Name", nameWidth);
-  const urlInput = makeInput(urlSpan, engine.url, "URL with %s", urlWidth);
-  const domainsInput = makeInput(domainsSpan, (engine.includedDomains || []).join(", "), "Domains (empty = all)", domainsWidth);
+  const nameInput = makeInput(nameSpan, engine.name, "Name");
+  const urlInput = makeInput(urlSpan, engine.url, "URL with %s");
+  const domainsInput = makeInput(domainsSpan, (engine.includedDomains || []).join(", "), "Included domains (empty = all)");
 
   const editBtn = row.querySelector(".btn-small:not(.btn-danger)");
   editBtn.textContent = "Save";
