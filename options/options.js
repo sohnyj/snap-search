@@ -71,10 +71,8 @@ function renderEngines() {
 
   settings.searchEngines.forEach((item, index) => {
     const row = document.createElement("div");
-    row.draggable = true;
     row.dataset.index = index;
 
-    row.addEventListener("dragstart", onDragStart);
     row.addEventListener("dragover", onDragOver);
     row.addEventListener("drop", onDrop);
     row.addEventListener("dragend", onDragEnd);
@@ -85,6 +83,8 @@ function renderEngines() {
       const dragHandle = document.createElement("span");
       dragHandle.className = "drag-handle";
       dragHandle.textContent = "☰";
+      dragHandle.draggable = true;
+      dragHandle.addEventListener("dragstart", onDragStart);
 
       const toggle = document.createElement("input");
       toggle.type = "checkbox";
@@ -204,6 +204,8 @@ function renderEngines() {
     const dragHandle = document.createElement("span");
     dragHandle.className = "drag-handle";
     dragHandle.textContent = "☰";
+    dragHandle.draggable = true;
+    dragHandle.addEventListener("dragstart", onDragStart);
 
     row.appendChild(dragHandle);
     row.appendChild(toggle);
@@ -277,8 +279,9 @@ function editEngine(index) {
 let dragIndex = null;
 
 function onDragStart(e) {
-  dragIndex = parseInt(e.currentTarget.dataset.index);
-  e.currentTarget.classList.add("dragging");
+  const row = e.currentTarget.closest(".engine-row");
+  dragIndex = parseInt(row.dataset.index);
+  row.classList.add("dragging");
   e.dataTransfer.effectAllowed = "move";
 }
 
@@ -312,7 +315,7 @@ function renderAppearance() {
 }
 
 function renderExcludedDomains() {
-  excludedList.innerHTML = "";
+  excludedList.replaceChildren();
 
   settings.excludedDomains.forEach((domain, index) => {
     const row = document.createElement("div");
