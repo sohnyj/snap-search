@@ -55,14 +55,13 @@
     return false;
   }
 
-  const CURRENCY_SYMBOL_MAP = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₩': 'KRW', '元': 'CNY', '円': 'JPY' };
-  const CURRENCY_CODE_MAP = { 'RMB': 'CNY', '위안': 'CNY', '달러': 'USD', '엔': 'JPY' };
+  const CURRENCY_MAP = { '$': 'USD', '€': 'EUR', '£': 'GBP', '₩': 'KRW', '元': 'CNY', '円': 'JPY', '¥': 'JPY', '달러': 'USD', '유로': 'EUR', '위안': 'CNY', '엔': 'JPY' };
   const CURRENCY_PATTERNS = (() => {
     const codes = 'USD|EUR|GBP|JPY|KRW|CNY|RMB|CAD|AUD|CHF|HKD|SGD|THB|INR|BRL|MXN|SEK|NOK|DKK|PLN|CZK|HUF|IDR|ILS|ISK|MYR|NZD|PHP|RON|TRY|ZAR';
     const syms = '\\$|€|£|¥|₩|元|円';
-    const amt = '[\\d,]+(?:\\.\\d+)?';
-    const words = '위안|달러|엔';
+    const words = '달러|유로|위안|엔';
     const cur = `${codes}|${syms}|${words}`;
+    const amt = '[\\d,]+(?:\\.\\d+)?';
     return [
       new RegExp(`(?<cur>${cur})\\s?(?<amt>${amt})`, 'i'),
       new RegExp(`(?<amt>${amt})\\s?(?<cur>${cur})`, 'i'),
@@ -74,7 +73,7 @@
       const m = text.match(p);
       if (m) {
         const raw = m.groups.cur;
-        const code = CURRENCY_SYMBOL_MAP[raw] || CURRENCY_CODE_MAP[raw.toUpperCase()] || raw.toUpperCase();
+        const code = CURRENCY_MAP[raw] || raw.toUpperCase();
         const amount = parseFloat(m.groups.amt.replace(/,/g, ''));
         if (code && !isNaN(amount) && amount > 0) return { code, amount };
       }

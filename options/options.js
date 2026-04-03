@@ -111,6 +111,7 @@ function renderEngines() {
       editBtn.textContent = "Edit";
       editBtn.addEventListener("click", () => {
         if (row.dataset.editing === "true") return;
+        if (document.querySelector('.engine-row[data-editing="true"]')) return;
         row.dataset.editing = "true";
 
         const input = document.createElement("input");
@@ -223,6 +224,7 @@ function editEngine(index) {
   const engine = settings.searchEngines[index];
   const row = engineList.children[index];
   if (!row || row.dataset.editing === "true") return;
+  if (document.querySelector('.engine-row[data-editing="true"]')) return;
   row.dataset.editing = "true";
 
   const nameSpan = row.querySelector(".engine-name");
