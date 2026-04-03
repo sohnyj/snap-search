@@ -164,6 +164,12 @@ h2 {
   user-select: none;
 }
 
+.builtin-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+}
+
 .engine-name {
   font-weight: 500;
   min-width: 100px;

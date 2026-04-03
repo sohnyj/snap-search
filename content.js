@@ -104,7 +104,12 @@
     return null;
   }
 
-  function createBuiltinButton(id, icon, label, selectedText) {
+  const BUILTIN_ICONS = Object.fromEntries(
+    Object.entries({ copy: "copy.png", openLink: "link.png", currency: "currency.png" })
+      .map(([id, file]) => [id, browser.runtime.getURL(`icons/builtin/${file}`)])
+  );
+
+  function createBuiltinButton(id, label, selectedText) {
     const btn = document.createElement("button");
     btn.className = "snaps-btn";
     btn.title = label;
@@ -116,10 +121,15 @@
       btn.textContent = label;
       btn.classList.add("snaps-btn-label");
     } else {
-      const span = document.createElement("span");
-      span.className = "snaps-btn-icon";
-      span.textContent = icon;
-      btn.appendChild(span);
+      const holder = document.createElement("span");
+      holder.className = "snaps-favicon-holder";
+      holder.dataset.builtin = id;
+      const img = document.createElement("img");
+      img.className = "snaps-favicon";
+      img.alt = label;
+      img.src = BUILTIN_ICONS[id];
+      holder.appendChild(img);
+      btn.appendChild(holder);
       btn.style.setProperty("--snaps-icon-size", `${iconSize}px`);
     }
 
@@ -225,19 +235,19 @@
 
     // Builtin: Copy
     if (actions.copy && actions.copy.enabled) {
-      popup.appendChild(createBuiltinButton("copy", "📋", "Copy", selectedText));
+      popup.appendChild(createBuiltinButton("copy", "Copy", selectedText));
     }
 
     // Builtin: Open Link (only if selected text is a URL)
     if (actions.openLink && actions.openLink.enabled && isUrl(selectedText)) {
-      popup.appendChild(createBuiltinButton("openLink", "🔗", "Open Link", selectedText));
+      popup.appendChild(createBuiltinButton("openLink", "Open Link", selectedText));
     }
 
     // Builtin: Currency
     const parsed = parseCurrency(selectedText);
     const currencyTarget = actions.currency?.targetCurrency || "KRW";
     if (actions.currency?.enabled && parsed && parsed.code !== currencyTarget) {
-      const currencyBtn = createBuiltinButton("currency", "💱", "Convert", selectedText);
+      const currencyBtn = createBuiltinButton("currency", "Currency", selectedText);
       currencyBtn.addEventListener("click", () => {
         currencyBtn.disabled = true;
         browser.runtime.sendMessage({

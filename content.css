@@ -133,6 +133,11 @@
   font-family: "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 
+/* Dark theme: light background for currency icon */
+#snaps-popup.snaps-dark .snaps-favicon-holder[data-builtin="currency"] {
+  background: #e0e0e6;
+}
+
 /* Divider */
 #snaps-popup .snaps-divider {
   display: inline-block;
